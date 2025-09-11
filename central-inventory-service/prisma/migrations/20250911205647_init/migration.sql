@@ -1,0 +1,8 @@
+-- CreateTable
+CREATE TABLE "Reservation" (
+    "id" INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT,
+    "sku" TEXT NOT NULL,
+    "qty" INTEGER NOT NULL,
+    "status" TEXT NOT NULL,
+    "createdAt" DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP
+);
