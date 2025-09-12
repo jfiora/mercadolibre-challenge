@@ -6,6 +6,7 @@ import { Counter } from 'k6/metrics';
 const stockCheckErrors = new Counter('stock_check_errors');
 const outOfStockErrors = new Counter('out_of_stock_errors');
 const successfulReservations = new Counter('successful_reservations');
+const concurrentErrors = new Counter('concurrent_errors');
 
 // Service URLs
 const STORE_EDGE_URL = 'http://localhost:3001';
@@ -25,16 +26,20 @@ export const options = {
         },
         // Stress test for concurrent reservations
         concurrent_reservations: {
-            executor: 'constant-vus',
-            vus: 1,
-            duration: '15s',
+            executor: 'ramping-vus',
+            startVUs: 1,
+            stages: [
+                { duration: '10s', target: 3 }, // Gradual ramp to 3
+                { duration: '10s', target: 5 }, // Ramp to 5
+                { duration: '10s', target: 0 }, // Gradual ramp down
+            ],
             startTime: '30s',
         },
     },
     thresholds: {
         http_req_duration: ['p(95)<500'],
         http_req_failed: ['rate<0.01'],
-        successful_reservations: ['count>20'],
+        successful_reservations: ['count>30'],
     },
     setupTimeout: '30s',
 };
@@ -109,62 +114,89 @@ export default function (data) {
         return;
     }
 
-    // Sort by stock level and pick from top half to favor items with more stock
-    const sortedItems = availableItems.sort((a, b) => b.qty - a.qty);
-    const item = sortedItems[0]; // Always pick the item with the most stock
-
+    // Distribute load evenly across all items with stock
+    const item =
+        availableItems[Math.floor(Math.random() * availableItems.length)];
     console.log(`Selected item ${item.sku} with stock ${item.qty}`);
 
     // Calculate a reasonable quantity based on available stock
-    const maxQty = Math.min(2, Math.floor(item.qty * 0.02)); // Take up to 2% of stock or 2 items
+    const maxQty = Math.min(2, Math.floor(item.qty * 0.01)); // Take up to 1% of stock or 2 items
     const requestedQty = Math.max(1, Math.floor(Math.random() * maxQty) + 1);
     console.log(`Attempting to reserve ${requestedQty} units of ${item.sku}`);
 
-    // Step 2: Make reservation
-    const reservationRes = http.post(
-        `${STORE_EDGE_URL}/reservations`,
-        JSON.stringify({
-            sku: item.sku,
-            qty: requestedQty,
-        }),
-        {
-            headers: { 'Content-Type': 'application/json' },
-        }
-    );
+    // Step 2: Make reservation with retry for concurrent errors
+    let retries = 3;
+    let reservationSuccess = false;
+    let reservationRes;
 
-    // Check reservation response
-    const reservationSuccess = check(reservationRes, {
-        'Reservation status is 201': (r) => r.status === 201,
-        'Reservation returns valid data': (r) => {
-            if (r.status !== 201) return false;
-            const data = JSON.parse(r.body);
-            return (
-                data.reservation.sku === item.sku &&
-                data.reservation.qty === requestedQty &&
-                typeof data.remainingStock === 'number'
-            );
-        },
-    });
-
-    if (reservationSuccess) {
-        successfulReservations.add(1);
-        console.log(
-            `Successfully reserved ${requestedQty} units of ${
-                item.sku
-            }. Remaining stock: ${
-                JSON.parse(reservationRes.body).remainingStock
-            }`
+    while (retries > 0 && !reservationSuccess) {
+        reservationRes = http.post(
+            `${STORE_EDGE_URL}/reservations`,
+            JSON.stringify({
+                sku: item.sku,
+                qty: requestedQty,
+            }),
+            {
+                headers: { 'Content-Type': 'application/json' },
+            }
         );
-    } else if (reservationRes.status === 400) {
-        const response = JSON.parse(reservationRes.body);
-        outOfStockErrors.add(1);
-        if (response.availableStock !== undefined) {
+
+        // Check reservation response
+        reservationSuccess = check(reservationRes, {
+            'Reservation status is 201': (r) => r.status === 201,
+            'Reservation returns valid data': (r) => {
+                if (r.status !== 201) return false;
+                const data = JSON.parse(r.body);
+                return (
+                    data.reservation.sku === item.sku &&
+                    data.reservation.qty === requestedQty &&
+                    typeof data.remainingStock === 'number'
+                );
+            },
+        });
+
+        if (reservationSuccess) {
+            successfulReservations.add(1);
             console.log(
-                `Reservation failed: Available stock for ${item.sku}: ${response.availableStock}`
+                `Successfully reserved ${requestedQty} units of ${
+                    item.sku
+                }. Remaining stock: ${
+                    JSON.parse(reservationRes.body).remainingStock
+                }`
             );
+            break;
+        } else if (reservationRes.status === 400) {
+            const response = JSON.parse(reservationRes.body);
+            if (response.error === 'Insufficient stock') {
+                outOfStockErrors.add(1);
+                console.log(
+                    `Reservation failed: Available stock for ${item.sku}: ${response.availableStock}`
+                );
+                break;
+            }
+            // For other 400 errors, retry
+            retries--;
+            if (retries > 0) {
+                console.log(
+                    `Reservation attempt failed, retrying... (${retries} attempts left)`
+                );
+                sleep(0.1); // Small delay between retries
+            }
         } else {
-            console.log('Reservation failed:', reservationRes.body);
+            // For 500 errors or other issues, retry
+            retries--;
+            if (retries > 0) {
+                console.log(
+                    `Reservation attempt failed, retrying... (${retries} attempts left)`
+                );
+                sleep(0.1); // Small delay between retries
+            }
         }
+    }
+
+    if (!reservationSuccess && retries === 0) {
+        concurrentErrors.add(1);
+        console.log('All reservation attempts failed');
     }
 
     // Step 3: Verify inventory was updated
@@ -179,7 +211,8 @@ export default function (data) {
             );
             // Only check if reservation was successful
             if (!reservationSuccess) return true;
-            return updatedItem && updatedItem.qty === item.qty - requestedQty;
+            // Allow for concurrent updates by checking if stock decreased
+            return updatedItem && updatedItem.qty <= item.qty - requestedQty;
         },
     });
 
@@ -206,6 +239,7 @@ export function handleSummary(data) {
                     stock_check_errors: stockCheckErrors.value,
                     out_of_stock_errors: outOfStockErrors.value,
                     successful_reservations: successfulReservations.value,
+                    concurrent_errors: concurrentErrors.value,
                 },
             },
             null,

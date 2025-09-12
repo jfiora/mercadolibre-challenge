@@ -10,9 +10,9 @@ const prisma = new PrismaClient();
 // Constants
 const MIN_QUANTITY = 1;
 const INITIAL_STOCK = {
-    sku123: 100, // Reduced initial stock to prevent overwhelming
-    sku456: 200,
-    sku789: 300,
+    sku123: 1000, // High stock for high-volume item
+    sku456: 2000, // High stock for high-volume item
+    sku789: 3000, // High stock for high-volume item
 };
 
 app.use(express.json());
