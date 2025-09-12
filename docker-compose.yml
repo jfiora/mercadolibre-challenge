@@ -1,0 +1,36 @@
+services:
+    central-inventory-service:
+        build:
+            context: ./central-inventory-service
+        ports:
+            - '3002:3002'
+        volumes:
+            - ./central-inventory-service:/app
+            - /app/node_modules
+            - /app/generated
+        environment:
+            - DATABASE_URL=file:/app/prisma/dev.db
+        restart: unless-stopped
+        networks:
+            - meli-network
+
+    store-edge-service:
+        build:
+            context: ./store-edge-service
+        ports:
+            - '3001:3001'
+        volumes:
+            - ./store-edge-service:/app
+            - /app/node_modules
+            - /app/generated
+        environment:
+            - DATABASE_URL=file:/app/prisma/dev.db
+        restart: unless-stopped
+        depends_on:
+            - central-inventory-service
+        networks:
+            - meli-network
+
+networks:
+    meli-network:
+        driver: bridge
