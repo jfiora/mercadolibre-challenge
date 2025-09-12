@@ -1,9 +1,14 @@
 import express, { Request, Response, NextFunction } from 'express';
 import { PrismaClient } from '../generated/prisma';
 import { randomInt } from 'crypto';
+import axios from 'axios';
 
 const app = express();
 const prisma = new PrismaClient();
+
+const CENTRAL_INVENTORY_URL =
+    process.env.CENTRAL_INVENTORY_URL ||
+    'http://central-inventory-service:3002';
 
 app.use(express.json());
 
@@ -29,9 +34,11 @@ app.get('/health', (req: Request, res: Response) => {
 // GET /inventory
 app.get('/inventory', async (req: Request, res: Response) => {
     try {
-        const inventory = await prisma.inventory.findMany();
-        res.json(inventory);
+        // Fetch inventory from central-inventory-service
+        const response = await axios.get(`${CENTRAL_INVENTORY_URL}/inventory`);
+        res.json(response.data);
     } catch (error) {
+        console.error('Failed to fetch inventory:', error);
         res.status(500).json({ error: 'Failed to fetch inventory' });
     }
 });
@@ -40,13 +47,14 @@ app.get('/inventory', async (req: Request, res: Response) => {
 app.post('/inventory', async (req: Request, res: Response) => {
     const { sku, qty } = req.body;
     try {
-        const item = await prisma.inventory.upsert({
-            where: { sku },
-            update: { qty, updatedAt: new Date() },
-            create: { sku, qty },
-        });
-        res.json(item);
+        // Forward the update to central-inventory-service
+        const response = await axios.post(
+            `${CENTRAL_INVENTORY_URL}/inventory`,
+            { sku, qty }
+        );
+        res.json(response.data);
     } catch (error) {
+        console.error('Failed to update inventory:', error);
         res.status(500).json({ error: 'Failed to update inventory' });
     }
 });
@@ -57,22 +65,29 @@ app.get('/metrics', async (req: Request, res: Response) => {
     const failedReservations = 10; // Mocked value
     const avgReservationLatencyMs = randomInt(50, 150); // Mocked random value
 
-    // Fetch stock levels from the database
-    const stockLevels = await prisma.inventory.findMany({
-        select: { sku: true, qty: true },
-    });
+    try {
+        // Fetch stock levels from central-inventory-service
+        const response = await axios.get(`${CENTRAL_INVENTORY_URL}/inventory`);
+        const stockLevels = response.data;
 
-    const stockMetrics = stockLevels
-        .map((item) => `stock_level{sku="${item.sku}"} ${item.qty}`)
-        .join('\n');
+        const stockMetrics = stockLevels
+            .map(
+                (item: { sku: string; qty: number }) =>
+                    `stock_level{sku="${item.sku}"} ${item.qty}`
+            )
+            .join('\n');
 
-    const metrics = `# HELP total_reservations_created Total number of reservations created\n# TYPE total_reservations_created counter\ntotal_reservations_created ${totalReservationsCreated}\n
+        const metrics = `# HELP total_reservations_created Total number of reservations created\n# TYPE total_reservations_created counter\ntotal_reservations_created ${totalReservationsCreated}\n
 # HELP failed_reservations Total number of failed reservations\n# TYPE failed_reservations counter\nfailed_reservations ${failedReservations}\n
 # HELP avg_reservation_latency_ms Average reservation latency in ms\n# TYPE avg_reservation_latency_ms gauge\navg_reservation_latency_ms ${avgReservationLatencyMs}\n
 # HELP stock_level Current stock levels per product\n# TYPE stock_level gauge\n${stockMetrics}`;
 
-    res.set('Content-Type', 'text/plain');
-    res.send(metrics);
+        res.set('Content-Type', 'text/plain');
+        res.send(metrics);
+    } catch (error) {
+        console.error('Failed to fetch metrics:', error);
+        res.status(500).json({ error: 'Failed to fetch metrics' });
+    }
 });
 
 const PORT = process.env.PORT || 3001;

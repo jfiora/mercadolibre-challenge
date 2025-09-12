@@ -33,6 +33,7 @@ services:
         environment:
             - DATABASE_URL=file:/app/prisma/dev.db
             - NODE_ENV=development
+            - CENTRAL_INVENTORY_URL=http://central-inventory-service:3002
         restart: unless-stopped
         depends_on:
             - central-inventory-service
