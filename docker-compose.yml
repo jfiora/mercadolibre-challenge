@@ -2,6 +2,9 @@ services:
     central-inventory-service:
         build:
             context: ./central-inventory-service
+            dockerfile: Dockerfile
+            args:
+                - NODE_ENV=development
         ports:
             - '3002:3002'
         volumes:
@@ -10,6 +13,7 @@ services:
             - /app/generated
         environment:
             - DATABASE_URL=file:/app/prisma/dev.db
+            - NODE_ENV=development
         restart: unless-stopped
         networks:
             - meli-network
@@ -17,6 +21,9 @@ services:
     store-edge-service:
         build:
             context: ./store-edge-service
+            dockerfile: Dockerfile
+            args:
+                - NODE_ENV=development
         ports:
             - '3001:3001'
         volumes:
@@ -25,6 +32,7 @@ services:
             - /app/generated
         environment:
             - DATABASE_URL=file:/app/prisma/dev.db
+            - NODE_ENV=development
         restart: unless-stopped
         depends_on:
             - central-inventory-service

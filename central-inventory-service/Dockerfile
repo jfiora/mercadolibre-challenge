@@ -17,11 +17,12 @@ COPY . .
 # Set DATABASE_URL for Prisma
 ENV DATABASE_URL="file:/app/prisma/dev.db"
 
-# Clean up any existing generated client
-RUN rm -rf generated/prisma
+# Clean up any existing generated client and database
+RUN rm -rf generated/prisma prisma/dev.db
 
-# Generate Prisma client with the correct binary
+# Generate Prisma client and run migrations
 RUN npx prisma generate
+RUN npx prisma migrate deploy
 
 # Expose the service port
 EXPOSE 3002

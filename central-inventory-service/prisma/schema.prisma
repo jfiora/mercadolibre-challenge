@@ -22,3 +22,9 @@ model Reservation {
   status    String
   createdAt DateTime @default(now())
 }
+
+model Inventory {
+  id  Int    @id @default(autoincrement())
+  sku String @unique
+  qty Int
+}
