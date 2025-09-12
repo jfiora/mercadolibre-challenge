@@ -1,0 +1,16 @@
+{
+    "name": "mercadolibre-challenge",
+    "version": "1.0.0",
+    "description": "MercadoLibre Challenge - Distributed Inventory System",
+    "scripts": {
+        "test": "npm run test:store-edge && npm run test:central",
+        "test:store-edge": "cd store-edge-service && npm install && npm test",
+        "test:central": "cd central-inventory-service && npm install && npm test",
+        "test:watch": "concurrently \"npm run test:store-edge:watch\" \"npm run test:central:watch\"",
+        "test:store-edge:watch": "cd store-edge-service && npm run test:watch",
+        "test:central:watch": "cd central-inventory-service && npm run test:watch"
+    },
+    "devDependencies": {
+        "concurrently": "^8.2.2"
+    }
+}
