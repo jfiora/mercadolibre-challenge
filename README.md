@@ -1,61 +1,79 @@
-# MercadoLibre Challenge - Testing Guide
+# Documentación MVP - Sistema de Inventario y Reservas
 
-## Running Tests
+## Diseño de la API
 
-### Prerequisites
+El sistema se compone de dos servicios principales:
 
--   Node.js installed
--   npm installed
--   Both services should have their dependencies installed and Prisma client generated
+-   **Central Inventory Service**: Responsable de gestionar el inventario y las reservas de manera centralizada.
+-   **Store Edge Service**: Funciona como un gateway para las tiendas, comunicándose con el servicio central para exponer endpoints seguros y simplificados.
 
-### Installation
+## Endpoints Principales
 
-```bash
-# Install root-level dependencies
-npm install
+### Central Inventory Service
 
-# Install dependencies for both services and generate Prisma clients
-cd store-edge-service && npm install && npm run prisma:generate && cd ..
-cd central-inventory-service && npm install && npm run prisma:generate && cd ..
+-   `GET /health` → Health check del servicio.
+-   `GET /inventory` → Listado completo de inventario.
+-   `GET /inventory/:sku` → Consultar stock de un SKU específico.
+-   `PUT /inventory/:sku` → Actualizar stock de un SKU.
+-   `GET /reservations` → Listar reservas.
+-   `POST /reservations` → Crear una nueva reserva (con validación de stock).
+-   `GET /metrics` → Métricas básicas de inventario y reservas.
+
+### Store Edge Service
+
+-   `GET /health` → Health check, incluyendo disponibilidad del central.
+-   `GET /inventory` → Proxy al inventario central.
+-   `GET /inventory/:sku` → Proxy a inventario por SKU.
+-   `POST /reservations` → Proxy para crear reservas.
+-   `GET /reservations` → Proxy para listar reservas.
+-   `GET /metrics` → Proxy de métricas.
+
+## Decisiones Clave de Arquitectura
+
+1. **Separación de responsabilidades**
+
+    - Central Inventory maneja la lógica de negocio.
+    - Store Edge actúa como fachada para clientes y tiendas.
+
+2. **Prisma ORM + SQLite in-memory**
+
+    - Prisma facilita acceso a datos y migraciones.
+    - SQLite permite rapidez para prototipado sin overhead de infra.
+
+3. **Transacciones en reservas**
+
+    - Uso de `prisma.$transaction` para garantizar atomicidad al reservar stock.
+
+4. **Endpoints de métricas**
+
+    - Se exponen métricas en formato Prometheus para monitoreo básico.
+
+5. **Tests incluidos**
+    - Unit tests para validar la lógica.
+    - Load tests simulando concurrencia de hasta 20 usuarios.
+
+## Consideraciones de Seguridad
+
+Este MVP no incluye autenticación ni autorización, ya que el foco está en la comunicación entre servicios y en el manejo de inventario y reservas.
+
+En un entorno de producción sería recomendable:
+
+-   Implementar **API keys o JWT** para proteger los endpoints.
+-   Usar **HTTPS** para la comunicación entre servicios.
+-   Agregar **rate limiting** en el Store Edge Service para evitar abusos.
+-   Definir políticas de **CORS** según los clientes autorizados.
+
+### Ejemplo opcional de seguridad (API Key mockeada)
+
+```ts
+// middleware/apiKeyAuth.ts
+import { Request, Response, NextFunction } from 'express';
+
+export function apiKeyAuth(req: Request, res: Response, next: NextFunction) {
+    const apiKey = req.headers['x-api-key'];
+    if (apiKey !== process.env.API_KEY) {
+        return res.status(401).json({ error: 'Unauthorized' });
+    }
+    next();
+}
 ```
-
-### Running Tests
-
-#### Run all tests once
-
-```bash
-npm test
-```
-
-This will run tests for both services sequentially.
-
-#### Run tests for individual services
-
-```bash
-# Run store-edge-service tests
-npm run test:store-edge
-
-# Run central-inventory-service tests
-npm run test:central
-```
-
-#### Watch Mode
-
-```bash
-# Run all tests in watch mode (both services concurrently)
-npm run test:watch
-
-# Run individual service tests in watch mode
-npm run test:store-edge:watch
-npm run test:central:watch
-```
-
-### Test Coverage
-
-Each service's tests include:
-
--   Inventory model CRUD operations
--   Data validation
--   Unique constraint testing
--   Timestamp validations
--   Reservation model operations (central-inventory-service only)

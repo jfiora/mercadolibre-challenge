@@ -103,3 +103,10 @@ Requirements:
     2. POST /reservations to central-inventory-service with { productId: "sku123", storeId: "store1", quantity: 1 }
 -   Capture response times and success rates.
 -   Print summary at the end.
+
+// create run.md
+can you create a run.md file which contains how to run the project
+docker-compose
+k6 tests
+unit test
+it has to be simple and consice
