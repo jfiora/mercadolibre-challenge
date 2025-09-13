@@ -5,7 +5,7 @@
 -   [Docker Setup](#docker-setup)
 -   [Load Testing](#load-testing)
 -   [Project Run](#project-run)
--   [Clarifications](#clarifications)
+-   [Aclaraciones](#aclaraciones)
 
 ## Central Inventory Service
 
