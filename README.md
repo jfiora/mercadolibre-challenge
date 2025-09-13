@@ -79,6 +79,8 @@ export function apiKeyAuth(req: Request, res: Response, next: NextFunction) {
 ```
 ## Stack Tecnológico
 
+Este stack fue elegido por su rapidez de desarrollo, bajo overhead y portabilidad, optimizando la validación del concepto antes de escalarlo.
+
 ### Prototipo (MVP)
 
 - **TypeScript + Express.js**  
@@ -91,8 +93,6 @@ export function apiKeyAuth(req: Request, res: Response, next: NextFunction) {
   Herramienta de pruebas de carga y concurrencia para validar el comportamiento del sistema bajo estrés.  
 - **Jest**  
   Framework de testing unitario, asegura la lógica de negocio y previene regresiones.  
-
-👉 Este stack fue elegido por su **rapidez de desarrollo**, **bajo overhead** y **portabilidad**, optimizando la validación del concepto antes de escalarlo.
 
 ---
 
