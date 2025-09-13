@@ -99,7 +99,7 @@ Este stack fue elegido por su rapidez de desarrollo, bajo overhead y portabilida
 
 ---
 
-### Producción (Evolución esperada)
+### Producción 
 
 - **Java + Spring Boot**  
   Marco robusto para servicios distribuidos en entornos productivos. 
