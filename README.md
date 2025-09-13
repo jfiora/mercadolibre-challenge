@@ -7,6 +7,9 @@ El sistema se compone de dos servicios principales:
 -   **Central Inventory Service**: Responsable de gestionar el inventario y las reservas de manera centralizada.
 -   **Store Edge Service**: Funciona como un gateway para las tiendas, comunicándose con el servicio central para exponer endpoints seguros y simplificados.
 
+<img width="821" height="211" alt="image" src="https://github.com/user-attachments/assets/ab5cb793-129d-4b87-94c9-da37ed7a7549" />
+
+
 ## Endpoints Principales
 
 ### Central Inventory Service
