@@ -101,10 +101,10 @@ Este stack fue elegido por su rapidez de desarrollo, bajo overhead y portabilida
 
 ### De MVP a Producción
 
-• Migrar a PostgreSQL.
-• Mensajería con Kafka/RabbitMQ.
-• Cache distribuido con Redis.
-• Despliegue en Kubernetes.
-• Monitoring con Prometheus + Grafana.
-• Seguridad: JWT, OAuth2, rate limiting. 
+- Migrar a PostgreSQL.
+- Mensajería con Kafka/RabbitMQ.
+- Cache distribuido con Redis.
+- Despliegue en Kubernetes.
+- Monitoring con Prometheus + Grafana.
+- Seguridad: JWT, OAuth2, rate limiting. 
 
