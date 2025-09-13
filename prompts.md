@@ -115,9 +115,11 @@ Requirements:
 
 ## Project Run
 can you create a run.md file which contains how to run the project
-docker-compose
-k6 tests
-unit test
+-    docker-compose
+-    k6 tests
+-    unit test
 it has to be simple and consice
 
 ## Aclaraciones
+
+Despues de analizar la tarea use Chat gpt para que me ayude a crear los prompts que despues ejecute en cursor. Una vez los prompts me crearon la estructura basica, empece a testear e iterar sobre el proyecto. Obviamente hubieron mas prompts pero no los sumo ya que la mayoria eran iteracion/debugging y no lo vi necesario.
