@@ -50,7 +50,7 @@ El sistema se compone de dos servicios principales:
 
 5. **Tests incluidos**
     - Unit tests para validar la lógica.
-    - Load tests simulando concurrencia de hasta 20 usuarios.
+    - Load tests simulando concurrencia de multiples usuarios.
 
 ## Consideraciones de Seguridad
 

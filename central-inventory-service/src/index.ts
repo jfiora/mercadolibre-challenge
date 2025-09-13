@@ -7,28 +7,24 @@ dotenv.config();
 const app = express();
 const prisma = new PrismaClient();
 
-// Constants
 const MIN_QUANTITY = 1;
 const INITIAL_STOCK = {
-    sku123: 1000, // High stock for high-volume item
-    sku456: 2000, // High stock for high-volume item
-    sku789: 3000, // High stock for high-volume item
+    sku123: 1000,
+    sku456: 2000,
+    sku789: 3000,
 };
 
 app.use(express.json());
 
-// Logging middleware
 app.use((req: Request, res: Response, next: NextFunction) => {
     console.log(`${req.method} ${req.path}`);
     next();
 });
 
-// Health check endpoint
 app.get('/health', (req: Request, res: Response) => {
     res.json({ status: 'ok', service: 'central-inventory' });
 });
 
-// Get all inventory
 app.get('/inventory', async (req: Request, res: Response) => {
     try {
         const inventory = await prisma.inventory.findMany({
@@ -41,7 +37,6 @@ app.get('/inventory', async (req: Request, res: Response) => {
     }
 });
 
-// Get inventory by SKU
 app.get('/inventory/:sku', async (req: Request, res: Response) => {
     try {
         const { sku } = req.params;
@@ -60,7 +55,6 @@ app.get('/inventory/:sku', async (req: Request, res: Response) => {
     }
 });
 
-// Update inventory
 app.put('/inventory/:sku', async (req: Request, res: Response) => {
     try {
         const { sku } = req.params;
@@ -84,7 +78,6 @@ app.put('/inventory/:sku', async (req: Request, res: Response) => {
     }
 });
 
-// Get all reservations
 app.get('/reservations', async (req: Request, res: Response) => {
     try {
         const reservations = await prisma.reservation.findMany({
@@ -97,7 +90,6 @@ app.get('/reservations', async (req: Request, res: Response) => {
     }
 });
 
-// Create a reservation with stock validation
 app.post('/reservations', async (req: Request, res: Response) => {
     const { sku, qty } = req.body;
 
@@ -113,9 +105,7 @@ app.post('/reservations', async (req: Request, res: Response) => {
     }
 
     try {
-        // Use transaction to ensure atomicity
         const result = await prisma.$transaction(async (tx) => {
-            // Get current inventory with pessimistic lock
             const inventory = await tx.inventory.findUnique({
                 where: { sku },
             });
@@ -125,11 +115,9 @@ app.post('/reservations', async (req: Request, res: Response) => {
             }
 
             if (inventory.qty < qty) {
-                // Return current stock level to help client adjust request
                 throw new Error(`INSUFFICIENT_STOCK:${inventory.qty}`);
             }
 
-            // Create reservation
             const reservation = await tx.reservation.create({
                 data: {
                     sku,
@@ -138,7 +126,6 @@ app.post('/reservations', async (req: Request, res: Response) => {
                 },
             });
 
-            // Update inventory
             const updatedInventory = await tx.inventory.update({
                 where: { sku },
                 data: {
@@ -179,7 +166,6 @@ app.post('/reservations', async (req: Request, res: Response) => {
     }
 });
 
-// Metrics endpoint
 app.get('/metrics', async (req: Request, res: Response) => {
     try {
         const [reservations, stockLevels] = await Promise.all([
@@ -209,10 +195,8 @@ ${stockMetrics}`;
     }
 });
 
-// Initialize database with mock data
 async function initData() {
     try {
-        // First, ensure the tables exist
         await prisma.$executeRaw`CREATE TABLE IF NOT EXISTS Inventory (
             id INTEGER PRIMARY KEY AUTOINCREMENT,
             sku TEXT UNIQUE NOT NULL,
@@ -227,13 +211,11 @@ async function initData() {
             createdAt DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP
         )`;
 
-        // Clear any existing data
         await prisma.reservation.deleteMany({});
         await prisma.inventory.deleteMany({});
 
         console.log('Seeding mock inventory data...');
 
-        // Insert initial stock
         const createdItems = await prisma.inventory.createMany({
             data: Object.entries(INITIAL_STOCK).map(([sku, qty]) => ({
                 sku,
@@ -252,7 +234,6 @@ async function initData() {
     }
 }
 
-// Start the server
 initData()
     .then((inventory) => {
         const PORT = process.env.PORT || 3002;

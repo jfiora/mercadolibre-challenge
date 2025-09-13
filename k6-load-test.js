@@ -2,13 +2,11 @@ import http from 'k6/http';
 import { check, sleep } from 'k6';
 import { Counter } from 'k6/metrics';
 
-// Custom metrics
 const stockCheckErrors = new Counter('stock_check_errors');
 const outOfStockErrors = new Counter('out_of_stock_errors');
 const successfulReservations = new Counter('successful_reservations');
 const concurrentErrors = new Counter('concurrent_errors');
 
-// Service URLs
 const STORE_EDGE_URL = 'http://localhost:3001';
 const CENTRAL_INVENTORY_URL = 'http://localhost:3002';
 
@@ -19,9 +17,9 @@ export const options = {
             executor: 'ramping-vus',
             startVUs: 1,
             stages: [
-                { duration: '20s', target: 2 }, // Ramp up to 2 users
-                { duration: '20s', target: 2 }, // Stay at 2 users
-                { duration: '20s', target: 0 }, // Ramp down
+                { duration: '20s', target: 2 },
+                { duration: '20s', target: 2 },
+                { duration: '20s', target: 0 },
             ],
         },
         // Stress test for concurrent reservations
@@ -29,9 +27,9 @@ export const options = {
             executor: 'ramping-vus',
             startVUs: 1,
             stages: [
-                { duration: '10s', target: 3 }, // Gradual ramp to 3
-                { duration: '10s', target: 5 }, // Ramp to 5
-                { duration: '10s', target: 0 }, // Gradual ramp down
+                { duration: '10s', target: 3 },
+                { duration: '10s', target: 5 },
+                { duration: '10s', target: 0 },
             ],
             startTime: '30s',
         },
@@ -44,7 +42,6 @@ export const options = {
     setupTimeout: '30s',
 };
 
-// Setup function to ensure services are ready
 export function setup() {
     let retries = 30;
     let servicesReady = false;
@@ -59,7 +56,6 @@ export function setup() {
             console.log('Both services are ready!');
             servicesReady = true;
 
-            // Verify inventory is seeded
             const inventory = http.get(`${STORE_EDGE_URL}/inventory`);
             if (inventory.status === 200) {
                 const items = JSON.parse(inventory.body);

@@ -11,16 +11,13 @@ const CENTRAL_INVENTORY_URL =
     process.env.CENTRAL_INVENTORY_URL ||
     'http://central-inventory-service:3002';
 
-// Logging middleware
 app.use((req: Request, res: Response, next: NextFunction) => {
     console.log(`${req.method} ${req.path}`);
     next();
 });
 
-// Health check endpoint
 app.get('/health', async (req: Request, res: Response) => {
     try {
-        // Check central service health
         const healthCheck = await axios.get(`${CENTRAL_INVENTORY_URL}/health`);
         if (healthCheck.status === 200) {
             res.json({ status: 'ok', service: 'store-edge' });
@@ -39,7 +36,6 @@ app.get('/health', async (req: Request, res: Response) => {
     }
 });
 
-// Get all inventory
 app.get('/inventory', async (req: Request, res: Response) => {
     try {
         const response = await axios.get(`${CENTRAL_INVENTORY_URL}/inventory`);
@@ -50,7 +46,6 @@ app.get('/inventory', async (req: Request, res: Response) => {
     }
 });
 
-// Get inventory by SKU
 app.get('/inventory/:sku', async (req: Request, res: Response) => {
     try {
         const { sku } = req.params;
@@ -68,7 +63,6 @@ app.get('/inventory/:sku', async (req: Request, res: Response) => {
     }
 });
 
-// Create a reservation
 app.post('/reservations', async (req: Request, res: Response) => {
     try {
         const response = await axios.post(
@@ -82,7 +76,6 @@ app.post('/reservations', async (req: Request, res: Response) => {
     } catch (error: any) {
         console.error('Error creating reservation:', error);
         if (error.response) {
-            // Forward the error response from the central service
             res.status(error.response.status).json(error.response.data);
         } else {
             res.status(500).json({ error: 'Failed to create reservation' });
@@ -90,7 +83,6 @@ app.post('/reservations', async (req: Request, res: Response) => {
     }
 });
 
-// Get all reservations
 app.get('/reservations', async (req: Request, res: Response) => {
     try {
         const response = await axios.get(
@@ -103,7 +95,6 @@ app.get('/reservations', async (req: Request, res: Response) => {
     }
 });
 
-// Metrics endpoint
 app.get('/metrics', async (req: Request, res: Response) => {
     try {
         const response = await axios.get(`${CENTRAL_INVENTORY_URL}/metrics`, {
@@ -117,7 +108,6 @@ app.get('/metrics', async (req: Request, res: Response) => {
     }
 });
 
-// Wait for central service to be ready
 async function waitForCentralService(
     maxRetries: number = 30,
     retryInterval: number = 1000
@@ -141,7 +131,6 @@ async function waitForCentralService(
     throw new Error('Central inventory service failed to become ready');
 }
 
-// Start the server
 const PORT = process.env.PORT || 3001;
 
 waitForCentralService()
