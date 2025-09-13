@@ -1,27 +1,13 @@
-// generate store-edge service
+## Table of Contents
 
-You are an expert software engineer. Generate a TypeScript (Node.js + Express or Fastify) API project called `store-edge-service`.
+-   [Central Inventory Service](#central-inventory-service)
+-   [Store Edge Service](#store-edge-service)
+-   [Docker Setup](#docker-setup)
+-   [Load Testing](#load-testing)
+-   [Project Run](#project-run)
+-   [Clarifications](#clarifications)
 
-Requirements:
-
--   Language: TypeScript
--   Persistence: SQLite (using Prisma ORM or better-sqlite3)
--   API basic endpoints:
-    -   `GET /health` → return `{status: "ok", service: "store-edge"}`
-    -   `GET /inventory` → list all inventory items from the SQLite DB
-    -   `POST /inventory` → add or update stock for a given `sku` and `qty`
--   DB schema: table `inventory` with fields:
-    -   `id` (int, autoincrement, pk)
-    -   `sku` (string, unique)
-    -   `qty` (int)
-    -   `updatedAt` (datetime)
--   Add simple logging middleware for all requests (method, path, status code).
--   Add error handler middleware (return JSON errors).
--   Package.json scripts: `dev`, `build`, `start`.
--   Include an initial SQLite migration to create the `inventory` table.
--   Output: Full project code (package.json, tsconfig, src files, prisma schema or SQL init).
-
-// generate central-inventory service
+## Central Inventory Service
 
 You are an expert software engineer. Generate a TypeScript (Node.js + Express) API project called `central-inventory-service`.
 
@@ -46,7 +32,30 @@ Requirements:
 -   Include an initial SQLite migration to create the `reservations` table.
 -   Output: Full project code (package.json, tsconfig, src files, prisma schema or SQL init).
 
-// generate docker compose
+## Store Edge Service
+
+You are an expert software engineer. Generate a TypeScript (Node.js + Express or Fastify) API project called `store-edge-service`.
+
+Requirements:
+
+-   Language: TypeScript
+-   Persistence: SQLite (using Prisma ORM or better-sqlite3)
+-   API basic endpoints:
+    -   `GET /health` → return `{status: "ok", service: "store-edge"}`
+    -   `GET /inventory` → list all inventory items from the SQLite DB
+    -   `POST /inventory` → add or update stock for a given `sku` and `qty`
+-   DB schema: table `inventory` with fields:
+    -   `id` (int, autoincrement, pk)
+    -   `sku` (string, unique)
+    -   `qty` (int)
+    -   `updatedAt` (datetime)
+-   Add simple logging middleware for all requests (method, path, status code).
+-   Add error handler middleware (return JSON errors).
+-   Package.json scripts: `dev`, `build`, `start`.
+-   Include an initial SQLite migration to create the `inventory` table.
+-   Output: Full project code (package.json, tsconfig, src files, prisma schema or SQL init).
+
+## Docker Setup
 
 You are an expert DevOps + Prisma engineer.  
 I have two TypeScript services (`store-edge-service` on port 3001 and `central-inventory-service` on port 3002).  
@@ -87,7 +96,7 @@ Please generate the following:
     - Full `docker-compose.yml`.
     - Clear instructions on how to run (`docker-compose up --build`) and how to test health endpoints.
 
-// create concurrency tests
+## Load Testing
 
 You are an expert performance engineer.
 Write a k6 script to load test my inventory system composed of:
@@ -104,9 +113,11 @@ Requirements:
 -   Capture response times and success rates.
 -   Print summary at the end.
 
-// create run.md
+## Project Run
 can you create a run.md file which contains how to run the project
 docker-compose
 k6 tests
 unit test
 it has to be simple and consice
+
+## Aclaraciones
