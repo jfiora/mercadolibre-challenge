@@ -77,3 +77,37 @@ export function apiKeyAuth(req: Request, res: Response, next: NextFunction) {
     next();
 }
 ```
+## Stack Tecnológico
+
+### Prototipo (MVP)
+
+- **TypeScript + Express.js**  
+  Considero que Node con Express es liviano y suficiente, ademas de battle proof, para el desarrollo de las APIs para el prototipo y evita errores comunes. 
+- **Prisma ORM + SQLite (in-memory)**  
+  Prisma facilita las consultas y las transacciones de manera declarativa. SQLite permite levantar un entorno rápido y portable sin dependencias externas.  
+- **Docker + Docker Compose**  
+  Estandariza la ejecución de los servicios, facilita levantar múltiples contenedores (central y edge) y simular un entorno distribuido.  
+- **k6**  
+  Herramienta de pruebas de carga y concurrencia para validar el comportamiento del sistema bajo estrés.  
+- **Jest**  
+  Framework de testing unitario, asegura la lógica de negocio y previene regresiones.  
+
+👉 Este stack fue elegido por su **rapidez de desarrollo**, **bajo overhead** y **portabilidad**, optimizando la validación del concepto antes de escalarlo.
+
+---
+
+### Producción (Evolución esperada)
+
+- **Java + Spring Boot**  
+  Marco robusto para servicios distribuidos en entornos productivos. 
+- **PostgreSQL**  
+  Base de datos relacional confiable, con soporte avanzado para concurrencia, replicación y escalabilidad vertical/horizontal.  
+- **Kafka o RabbitMQ**  
+  Para manejar eventos de inventario en tiempo real y reducir la latencia entre tiendas y el sistema central.  
+- **Kubernetes (K8s)**  
+  Orquestación para desplegar, escalar y mantener la resiliencia de los microservicios.  
+- **Prometheus + Grafana**  
+  Monitoreo y visualización avanzada de métricas de reservas, stock y performance.  
+- **Keycloak o Auth0**  
+  Para manejar identidad, autenticación y autorización de forma centralizada.  
+
