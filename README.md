@@ -93,9 +93,8 @@ Este stack fue elegido por su rapidez de desarrollo, bajo overhead y portabilida
 - **Docker + Docker Compose**  
   Estandariza la ejecución de los servicios, facilita levantar múltiples contenedores (central y edge) y simular un entorno distribuido.  
 - **k6**  
-  Herramienta de pruebas de carga y concurrencia para validar el comportamiento del sistema bajo estrés.  
-- **Jest**  
-  Framework de testing unitario, asegura la lógica de negocio y previene regresiones.  
+  Open source tool para load testing.
+- **Jest**
 
 ---
 
