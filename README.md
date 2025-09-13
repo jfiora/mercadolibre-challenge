@@ -99,18 +99,12 @@ Este stack fue elegido por su rapidez de desarrollo, bajo overhead y portabilida
 
 ---
 
-### Producción 
+### De MVP a Producción
 
-- **Java + Spring Boot**  
-  Marco robusto para servicios distribuidos en entornos productivos. 
-- **PostgreSQL**  
-  Base de datos relacional confiable, con soporte avanzado para concurrencia, replicación y escalabilidad vertical/horizontal.  
-- **Kafka o RabbitMQ**  
-  Para manejar eventos de inventario en tiempo real y reducir la latencia entre tiendas y el sistema central.  
-- **Kubernetes (K8s)**  
-  Orquestación para desplegar, escalar y mantener la resiliencia de los microservicios.  
-- **Prometheus + Grafana**  
-  Monitoreo y visualización avanzada de métricas de reservas, stock y performance.  
-- **Keycloak o Auth0**  
-  Para manejar identidad, autenticación y autorización de forma centralizada.  
+• Migrar a PostgreSQL.
+• Mensajería con Kafka/RabbitMQ.
+• Cache distribuido con Redis.
+• Despliegue en Kubernetes.
+• Monitoring con Prometheus + Grafana.
+• Seguridad: JWT, OAuth2, rate limiting. 
 
